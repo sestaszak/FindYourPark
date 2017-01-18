@@ -29,4 +29,4 @@ may1516np<-npsubset(may1516)
 regionsnp<-npsubset(regions)
 
 yrreg<-merge(x=yr15np, y=regionsnp[,1:2], by.x="ParkName", by.y = "ParkNameGroupTitle", all = TRUE)
-npsdat<-merge(x=yrreg, y=may1516np[,1:7], by.x = "ParkName", by.y = "Park", all = TRUE)
+npsdat<-merge(x=yrreg, y=may1516np[,1:7], by.x="ParkName", by.y = "Park", all = TRUE)
