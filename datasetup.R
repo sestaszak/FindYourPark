@@ -11,13 +11,21 @@ regions<-read.csv(file = paste0(dir, "/data/", "nps_regions_year_clean.csv"))
 regions$RegionNameTotal=NULL
 regions$ReportTotal1=NULL
 
-#get only the national parks
-parknames<-as.character(yr15$ParkName)
-npnames<-parknames[grep("\\bNP\\b", parknames, perl = TRUE)]
+parks <- read_csv(file=paste0(dir, "/data/", "parks.csv")) 
+# parks$ParkName<-gsub("National Park", "NP", parks$`Park Name`)
+# parks$ParkName<-gsub("NP and Preserve", "NP & PRES", parks$ParkName)
 
-yr15$isNP<-ifelse(yr15$ParkName%in%npnames, 1, 0)
-may1516$isNP<-ifelse(may1516$Park%in%npnames, 1, 0)
-regions$isNP<-ifelse(regions$ParkNameGroupTitle%in%npnames, 1, 0)
+#get only the national parks
+parknames<-as.character(yr15$ParkName)  
+npnames<-parknames[grep("\\bNP\\b", parknames, perl = TRUE)] 
+
+prknamematch<-match_userlist(parks$`Park Name`, mdtol=0.1, rtrn="pairs") 
+XW<-data.frame(ParkName_p=prknamematch[,2], ParkName=prknamematch[,3]) 
+parksXW<-merge(x=XW, y=parks, by.x = "ParkName_p", by.y = "Park Name", all=TRUE) 
+
+yr15$isNP<-ifelse(yr15$ParkName%in%npnames, 1, 0) 
+may1516$isNP<-ifelse(may1516$Park%in%npnames, 1, 0) 
+regions$isNP<-ifelse(regions$ParkNameGroupTitle%in%npnames, 1, 0) 
 
 npsubset<-function(dat) {
   newdat<-subset(dat, dat$isNP==1)
@@ -30,3 +38,15 @@ regionsnp<-npsubset(regions)
 
 yrreg<-merge(x=yr15np, y=regionsnp[,1:2], by.x="ParkName", by.y = "ParkNameGroupTitle", all = TRUE)
 npsdat<-merge(x=yrreg, y=may1516np[,1:7], by.x="ParkName", by.y = "Park", all = TRUE)
+
+np<-merge(x=npsdat, y=parksXW, by.x="ParkName", by.y="ParkName", all=TRUE)
+
+save(np, file="NPS_dat_byPark.Rda")
+
+#### test lists of parks as personal input for match_userlist (rtrn="flags")
+parks_sara<-c("Arches", "Bryce", "Canyonlands", "Glacier", "Grand Canyon", "Mesa Verde", "Petrified Forest", "Rocky Mountain", "Zion", 
+              "Acadia", "Pinnacles", "Redwoods", "Yosemite", "Great Smoky", "Mammoth Caves", "Sequoia", "kings", "Lassen")
+parks_alision<-c("Grand Canyon", "Sequoia", "Yosemite", "Smoky Mountains", "Zion", "Rainier", "North Cascades", "Olympic", "Pinnacles", "Lassen", "Josh")
+
+parenttest<-c("Arches", "Glacier", "Grand Canyon", "Mesa Verde", "Petrified Forest", "Rocky Mountain", "Acadia", "Yosemite", "Great Smoky", 
+              "Mammoth Caves", "JTree", "Sequoia", "kings")
