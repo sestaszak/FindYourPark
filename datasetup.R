@@ -45,7 +45,7 @@ save(np, file="NPS_dat_byPark.Rda")
 
 #### test lists of parks as personal input for match_userlist (rtrn="flags")
 parks_sara<-c("Arches", "Bryce", "Canyonlands", "Glacier", "Grand Canyon", "Mesa Verde", "Petrified Forest", "Rocky Mountain", "Zion", 
-              "Acadia", "Pinnacles", "Redwoods", "Yosemite", "Great Smoky", "Mammoth Caves", "Sequoia", "kings", "Lassen")
+              "Acadia", "Pinnacles", "Redwoods", "Yosemite", "Great Smoky", "Mammoth Caves", "Sequoia", "kings", "Lassen", "Jtree", "Death valley", "Channel Islands")
 parks_alision<-c("Grand Canyon", "Sequoia", "Yosemite", "Smoky Mountains", "Zion", "Rainier", "North Cascades", "Olympic", "Pinnacles", "Lassen", "Josh")
 
 parenttest<-c("Arches", "Glacier", "Grand Canyon", "Mesa Verde", "Petrified Forest", "Rocky Mountain", "Acadia", "Yosemite", "Great Smoky", 
