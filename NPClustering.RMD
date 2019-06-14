@@ -1,0 +1,134 @@
+---
+title: "NPS clustering"
+output: html_document
+---
+
+
+read in NPS_dat_byPark.Rda
+kmeans
+hclust
+prcomp
+use pca to reduce for clustering
+check means and sds of variables--> probably need to scale and center
+
+
+```{r setup}
+#load data, currently stored in main dir
+np<-get(load("NPS_dat_byPark.Rda"))
+
+#load packages
+#stats package (default) contains what we need
+
+source('imputefuncs.R')
+```
+
+```{r data}
+#str(np)
+
+predictorsnp<-c("may15.total", "may16.total", "Acres", grep("YTD", names(np), value=TRUE))
+othervars<-names(np)[!names(np)%in%predictorsnp]
+
+abrvnames<-ifelse(np$`Park Code`!="SEKI" & !is.na(np$`Park Code`), 
+                  np$`Park Code`, 
+                  toupper(substr(as.character(np$ParkName), 1,4)) 
+                  )
+
+str(np[,c("Region",predictorsnp)])
+## region is the only factor, all else numerical
+summary(np[,predictorsnp])
+
+npimp<-data.frame(np[,othervars], apply(np[,predictorsnp], 2, zeroimpute))
+
+colMeans(npimp[,predictorsnp])
+apply(npimp[,predictorsnp], 2, sd)
+
+npn<-npimp[,predictorsnp]
+rownames(npn)<-abrvnames
+rgn<-np[,"Region"]
+```
+
+```{r pca1}
+prn<-prcomp(npn, scale=TRUE, center=TRUE)
+summary(prn)
+
+nvarc<-prn$sdev^2
+pve<-nvarc/sum(nvarc)
+
+plot(pve, xlab = "Principal Component", 
+     ylab = "Proportion of Variance Explained", 
+     ylim = c(0, 1), type = "b")
+
+plot(cumsum(pve), xlab = "Principal Component", 
+     ylab = "Cumulative Proportion of Variance Explained", 
+     ylim = c(0, 1), type = "b")
+abline(h=0.9, col="red")
+
+```
+
+```{r pca plots}
+# Create a biplot 
+biplot(prn)
+
+# Scatter plot observations by components 1 and 2
+plot(prn$x[, c(1, 2)], col = rgn, 
+     xlab = "PC1", ylab = "PC2")
+
+# Repeat for components 1 and 3
+plot(prn$x[, c(1, 3)], col = rgn, 
+     xlab = "PC1", ylab = "PC3")
+
+plot(prn$x[,c(2,3)], col=rgn, xlab="PC2", ylab="PC3")
+```
+
+```{r hclust1}
+nhcc<-hclust(dist(scale(npn)), method="complete")
+plot(nhcc)
+##also try other methods
+
+nhcs<-hclust(dist(scale(npn)), method="single")
+plot(nhcs)
+
+nhca<-hclust(dist(scale(npn)), method="average")
+plot(nhca)
+```
+
+```{r kmean1}
+
+# Set seed
+set.seed(1)
+
+for(i in 1:6) {
+  # Run kmeans() on x with three clusters and one start
+  km.out <- kmeans(scale(npn[,c("Acres", "RecreationVisitorsYTD")]), 3, nstart=1)
+  
+  # Plot clusters
+  plot(scale(npn[,c("Acres", "RecreationVisitorsYTD")]), col = km.out$cluster, 
+       main = km.out$tot.withinss, 
+       xlab = "", ylab = "")
+}
+
+km1clust<-km.out$cluster
+```
+
+```{r km other}
+for(i in 4:length(predictorsnp)){
+  plot(npn[,c(3,i)], col=km.out$cluster, main=names(npn)[i])
+}
+```
+
+```{r km2}
+# Set seed
+set.seed(2)
+
+for(i in 1:6) {
+  # Run kmeans() on x with three clusters and one start
+  km2.out <- kmeans(scale(npn[,c("TentCampersYTD", "BackcountryYTD")]), 3, nstart=1)
+  
+  print(table(km2.out$cluster))
+  
+  # Plot clusters
+  plot(scale(npn[,c("TentCampersYTD", "BackcountryYTD")]), col = km2.out$cluster, 
+       main = km2.out$tot.withinss, 
+       xlab = "", ylab = "")
+}
+```
