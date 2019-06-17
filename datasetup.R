@@ -19,9 +19,21 @@ parks <- read_csv(file=paste0(dir, "/data/", "parks.csv"))
 parknames<-as.character(yr15$ParkName)  
 npnames<-parknames[grep("\\bNP\\b", parknames, perl = TRUE)] 
 
+spbounddat<-get(load("data/NP_boundary_mtdt.Rda"))
+spnpbound<-subset(spbounddat, spbounddat$UNIT_TYPE=="National Park")
+spnamematch<-matchnames_np(as.character(spnpbound$UNIT_NAME), npnames)
+XWs<-data.frame(ParkName_s=spnamematch[,2], ParkName=spnamematch[,3])
+shpXW<-merge(x=XWs, y=spnpbound, by.x="ParkName_s", by.y="UNIT_NAME", all=TRUE)
+
 prknamematch<-match_userlist(parks$`Park Name`, mdtol=0.1, rtrn="pairs") 
-XW<-data.frame(ParkName_p=prknamematch[,2], ParkName=prknamematch[,3]) 
-parksXW<-merge(x=XW, y=parks, by.x = "ParkName_p", by.y = "Park Name", all=TRUE) 
+XWp<-data.frame(ParkName_p=prknamematch[,2], ParkName=prknamematch[,3]) 
+parksXW<-merge(x=XWp, y=parks, by.x = "ParkName_p", by.y = "Park Name", all=TRUE) 
+parksXWsp<-merge(x=parksXW, y=shpXW, by.x="ParkName", by.y="ParkName", all=TRUE)
+
+colnames(parksXWsp)<-c("ParkName", "Name_parks", "Code_parks", "State_parks", "Acres", "Latitude", "Longitude", 
+                       "Name_shp", "Code_shp", "GIS_Notes", "DATE_EDIT", "State_shp", "Region", "GNIS_ID", "Type_shp",
+                       "Created_by", "METADATA")
+save(parksXWsp, file="data/NPCrossWalk.Rda") 
 
 yr15$isNP<-ifelse(yr15$ParkName%in%npnames, 1, 0) 
 may1516$isNP<-ifelse(may1516$Park%in%npnames, 1, 0) 

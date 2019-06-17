@@ -75,3 +75,50 @@ match_userlist<-function(visit_vector, mdtol, rtrn) {
     return(allpairname)
   }
 }
+
+
+matchnames_np<-function(find, src){
+  maxmatch<-min(length(find), length(src))
+  nmatched<-0
+  allmatch<-FALSE
+  
+  frmNP<-gsub("National Park", "", find)
+  srmNP<-gsub("NP", "", src)
+  frmP<-gsub("and Preserve", "", frmNP)
+  srmP<-gsub("& PRES", "", srmNP)
+  
+  m1<-agrep_vec_sapply(frmP, mdtol=0.1, srmP)
+  nmatched<-nmatched+length(m1$matched)
+  matches<-m1$matched
+  tofix<-m1$tofix
+  allmatch<-(nmatched==maxmatch)
+  allpair<-cbind(matches, find[which(!find%in%find[tofix])])
+  
+  othertrymeths<-1
+  othertry<-0
+  while(!allmatch | othertry<othertrymeths){
+    nm2<-c()
+    nmt2<-c()
+    for(i in 1:length(m1$tofix)){
+      #t2<-grep(frmP[m1$tofix[i]], srmP)
+      t2<-which(frmP[m1$tofix[i]]==srmP)
+      if(length(t2)>=1){
+        tofix<-tofix[-i]
+        nmp<-cbind(t2, find[which(find%in%find[m1$tofix[i]])])
+        nmt2<-rbind(nmt2, nmp)
+        }
+      nm2<-c(nm2, t2)
+      othertry<-othertry+1
+    }
+    nmatched<-nmatched+length(nm2)
+    allmatch<-(nmatched==maxmatch)
+    matches<-c(matches, nm2)
+    allpair<-rbind(allpair, nmt2)
+  }
+  
+  
+  
+  allpairname<-cbind(allpair, src[as.numeric(allpair[,1])])
+  return(allpairname)
+  
+}
