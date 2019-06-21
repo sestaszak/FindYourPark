@@ -57,12 +57,15 @@ table(speciesall$`Conservation Status`)
 #just count !is.na
 
 pspecies<-subset(speciesall, speciesall$Occurrence=="Present")
-
+pspecies$ConserveStat<-as.factor(ifelse(is.na(pspecies$`Conservation Status`), 0, 1))
+  
 parktot<-count(pspecies, `Park Name`)
 
 parktype<-count(pspecies, `Park Name`, Category)
 parknat<-count(pspecies, `Park Name`, Nativeness)
 parkab<-count(pspecies, `Park Name`, Abundance)
+parkcon<-count(pspecies, `Park Name`, ConserveStat)
+
 
 
 
